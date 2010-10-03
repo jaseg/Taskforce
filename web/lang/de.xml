@@ -1,0 +1,10 @@
+<translations>
+	<translation>
+		<from>Javascript is not enabled on this computer</from>
+		<to>JavaScript ist auf diesem Computer deaktiviert</to>
+	</translation>
+	<translation>
+		<from>Since this application is based on JavaScript, you should enable it in your browser settings, with your NoScript plugin or whatever you use to block it and reload this page.</from>
+		<to>Da diese Anwendung auf JavaScript basiert, sollten Sie dieses in ihren Browsereinstellungen, mit ihrem NoScript-Plugin oder ähnlichem aktivieren und diese Seite neu laden.</to>
+	</translation>
+</translations>
