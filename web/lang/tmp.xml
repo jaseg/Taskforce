@@ -1,0 +1,10 @@
+<translations>
+	<translation>
+		<from>test</from>
+		<to>bla</to>
+	</translation>
+	<translation>
+		<from>bar</from>
+		<to>foo</to>
+	</translation>
+</translations>
