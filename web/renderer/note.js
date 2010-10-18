@@ -9,7 +9,7 @@ eu.twopi.taskforce.renderer.note = {
 	"renders": function(node_type){
 		return node_type == "note";
 	},
-	"render": function(doc, target){
+	"render": function(node, target){
 		var buf = "";
 		
 		target.html(buf);

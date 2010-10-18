@@ -11,32 +11,24 @@ const couchDBroot = "http://192.168.2.20:5984"
 
 var currentQuery = new Array();
 var queryHistory = new Array();
-var currentListView = "tiles";
+
+var currentNode = null;
 
 var nodeRenderers = new Array();
 var currentNodeRenderer = new Array();
 var listRenderers = new Array();
 var currentListRenderer = null;
 
-function loadNodeRenderers(){
-	$.ajax({
-		dataType: "json",
-		url: "/renderer/index.html",
-		success: function(data, status, xhr){
-			data["renderers"].each(function(index){
-				$.getScript('/renderer/'+this);
-			});
-		}
+function renderTagList(taglist, target){
+	
+}
+
+function switchToNode(id){
+	fetchNode(id, function(data){
+		currentNode = data;
+		renderNode(currentNode, $('#contentpanel');
 	});
-	$.ajax({
-		dataType: "json",
-		url: "/listView/index.html",
-		success: function(data, status, xhr){
-			data["renderers"].each(function(index){
-				$.getScript('/listView/'+this);
-			});
-		}
-	});
+	populateCurrentNodeRendererMenu(currentNode, $('#rendererSelector'));
 }
 
 function switchToTags(tags){
@@ -48,7 +40,7 @@ function switchToTags(tags){
 			query = "tag:" + this;
 	}
 	query += ')';
-	switchToQuery(query);
+	switchToFilter(query);
 }
 
 function switchToFilter(query){
@@ -65,7 +57,9 @@ function addFilter(query){
 }
 
 function renderCurrentQuery(){
-	renderList(luceneFetch(generateQueryString(currentQuery)), $("#contentpanel"));
+	luceneFetch(generateQueryString(currentQuery), function(data){
+		renderNode(data, $('#contentpanel'));
+	});
 }
 
 function renderQueryHistory(){
@@ -99,18 +93,6 @@ function queryHistoryBack(){
 	renderCurrentQuery();
 }
 
-function renderList(nodelist, target){
-	currentListRenderer.render(nodelist, target);
-}
-
-function registerListRenderer(renderer){
-	listRenderers.push(renderer);
-	if(currentListRenderer == null)
-		currentListRenderer = renderer;
-	else if(currentListRenderer.altitude < renderer.altitude)
-		currentListRenderer = renderer;
-}
-
 function populateCurrentNodeRendererMenu(node, target){
 	//In this function an important assumption is made: The renderer lists are
 	//considered to be final. If they were not and a renderer would be load
@@ -131,7 +113,7 @@ function populateCurrentNodeRendererMenu(node, target){
 }
 
 function setCurrentNodeRenderer(index){
-	currentNodeRenderer = nodeRenderers[index];
+	currentNodeRenderer[currentNode.node_type] = nodeRenderers[index];
 	renderNode(currentNode, $("#contentpanel"));
 }
 
@@ -153,18 +135,17 @@ function registerNodeRenderer(renderer){
 	nodeRenderers = renderer;
 }
 
-function fetchNode(nodeID){
+function fetchNode(nodeID, callback){
 	$.ajax({
 		dataType: "json",
 		url: couchDBroot+"/taskforce/"+nodeID,
 		success: function(data, status, xhr){
-			return data;
+			callback(data);
 		}
 	});
-	
 }
 
-function luceneFetch(filter){
+function luceneFetch(filter, callback){
 	var docs = [];
 	var query = "nodes?q=";
 	$.ajax({
@@ -187,20 +168,9 @@ function luceneFetch(filter){
 		type: "POST",
 		data: keylist,
 		success: function(data, status, xhr){
-			return data;
+			callback(data);
 		}
 	});
-}
-
-/* Constructor of the nodeData object
- * This object is used to pass a node to the renderer
- */
-function Node(nodeID, data, owner, acl, parents){
-	this.id = nodeID;
-	this.data = data;
-	this.owner = owner;
-	this.acl = acl;
-	this.parents = parents;
 }
 
 //Posted by Kevin Hakanson on stackoverflow.com
@@ -218,6 +188,27 @@ function createUUID() {
 
 	var uuid = s.join("");
 	return uuid;
+}
+
+function loadNodeRenderers(){
+	$.ajax({
+		dataType: "json",
+		url: "/renderer/index.html",
+		success: function(data, status, xhr){
+			data["renderers"].each(function(index){
+				$.getScript('/renderer/'+this);
+			});
+		}
+	});
+	$.ajax({
+		dataType: "json",
+		url: "/listView/index.html",
+		success: function(data, status, xhr){
+			data["renderers"].each(function(index){
+				$.getScript('/listView/'+this);
+			});
+		}
+	});
 }
 
 //Initialization function - this is called after the DOM has been loaded.
