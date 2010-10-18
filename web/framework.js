@@ -11,7 +11,6 @@ const couchDBroot = "http://192.168.2.20:5984"
 
 var currentQuery = new Array();
 var queryHistory = new Array();
-var currentPathView = "lists";
 var currentListView = "tiles";
 
 var nodeRenderers = new Array();
@@ -41,27 +40,67 @@ function loadNodeRenderers(){
 }
 
 function switchToTags(tags){
-	queryHistory.append(currentQuery);
-	currentQuery = new Array();
-	var query = "";
+	var query = "(";
 	tags.each(function(index){
 		if(index > 0)
 			query += " OR tag:" + this;
 		else
 			query = "tag:" + this;
 	}
-	currentQuery.append(query);
-	renderList(luceneFetch(query), $("#pathpanel"));
+	query += ')';
+	switchToQuery(query);
 }
 
-function addFilter
+function switchToFilter(query){
+	queryHistory.append(currentQuery);
+	currentQuery = new Array();
+	currentQuery.append(query);
+	renderCurrentQuery();
+}
 
-function searchInTitle(term){
-	
+function addFilter(query){
+	queryHistory.append(currentQuery);
+	currentQuery.push('('+query+')');
+	renderCurrentQuery();
+}
+
+function renderCurrentQuery(){
+	renderList(luceneFetch(generateQueryString(currentQuery)), $("#contentpanel"));
+}
+
+function renderQueryHistory(){
+	var buf='<ul class="queryHistoryList" id="queryHistoryList">';
+	queryHistory.each(function(index){
+		buf += '<li class="queryHistoryItem" id="queryHistoryItem_'+index+'">';
+		buf += '<ul class="partsList">';
+		this.each(function(qindex){
+			buf += '<li class="queryPart">';
+			buf += this;
+			buf += '</li>';
+		});
+		buf += '</ul></li>';
+	});
+	buf += '</ul>';
+	$('#pathpanel').html(buf);
+}
+
+function generateQueryString(queryArray){
+	var tmpQuery = "";
+	currentQuery.each(function(index){
+		if(index > 0)
+			tmpQuery += ' AND ';
+		tmpQuery += this;
+	});
+	return tmpQuery;
+}
+
+function queryHistoryBack(){
+	currentQuery = queryHistory.pop();
+	renderCurrentQuery();
 }
 
 function renderList(nodelist, target){
-	currentListRenderer.
+	currentListRenderer.render(nodelist, target);
 }
 
 function registerListRenderer(renderer){
