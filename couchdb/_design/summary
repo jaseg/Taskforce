@@ -1,0 +1,10 @@
+"language":"javascript"
+"views":{
+	"by_id":{
+		"map":"function(doc){
+			if(doc.type == "node"){
+				emit(doc.id, {"nodetype":doc.nodetype, "owner":doc.owner, "acl":doc.acl, "summary":doc.data.summary});
+			}
+		}"
+	}
+}

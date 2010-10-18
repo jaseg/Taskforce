@@ -1,0 +1,20 @@
+"fulltext": {
+	"nodes": {
+		"index":"function(doc){
+			if(doc.type == "node"){
+				var ret = new Document();
+				ret.add(doc.data.summary);
+				ret.add(doc.data.rest);
+				ret.add(doc.type, {"field":"type"});
+				ret.add(doc.title, {"field":"title"});
+				var tags = new Array();
+				for(var t in doc.tags){
+					tags.push(doc.tags[t]);
+				}
+				ret.add(tags, {"field":"tags"});
+				return ret;
+			}
+			return null;
+		}"
+	}
+}
