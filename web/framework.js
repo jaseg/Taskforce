@@ -9,6 +9,7 @@
 
 const couchDBroot = "http://192.168.2.20:5984"
 
+const webbase = "http://192.168.2.23/taskforce"
 var currentQuery = new Array();
 var queryHistory = new Array();
 
@@ -26,7 +27,7 @@ function renderTagList(taglist, target){
 function switchToNode(id){
 	fetchNode(id, function(data){
 		currentNode = data;
-		renderNode(currentNode, $('#contentpanel');
+		renderNode(currentNode, $('#contentpanel'));
 	});
 	populateCurrentNodeRendererMenu(currentNode, $('#rendererSelector'));
 }
@@ -38,20 +39,21 @@ function switchToTags(tags){
 			query += " OR tag:" + this;
 		else
 			query = "tag:" + this;
-	}
+	});
 	query += ')';
 	switchToFilter(query);
 }
 
 function switchToFilter(query){
-	queryHistory.append(currentQuery);
+	if(currentQuery != null)
+		queryHistory.push(currentQuery);
 	currentQuery = new Array();
-	currentQuery.append(query);
+	currentQuery.push(query);
 	renderCurrentQuery();
 }
 
 function addFilter(query){
-	queryHistory.append(currentQuery);
+	queryHistory.push(currentQuery);
 	currentQuery.push('('+query+')');
 	renderCurrentQuery();
 }
@@ -67,7 +69,7 @@ function renderQueryHistory(){
 	queryHistory.each(function(index){
 		buf += '<li class="queryHistoryItem" id="queryHistoryItem_'+index+'">';
 		buf += '<ul class="partsList">';
-		this.each(function(qindex){
+		this.each(function(qindex){	
 			buf += '<li class="queryPart">';
 			buf += this;
 			buf += '</li>';
@@ -80,11 +82,11 @@ function renderQueryHistory(){
 
 function generateQueryString(queryArray){
 	var tmpQuery = "";
-	currentQuery.each(function(index){
+	for(var index = 0; index < queryArray.length; index++){
 		if(index > 0)
 			tmpQuery += ' AND ';
-		tmpQuery += this;
-	});
+		tmpQuery += queryArray[index];
+	}
 	return tmpQuery;
 }
 
@@ -139,7 +141,7 @@ function fetchNode(nodeID, callback){
 	$.ajax({
 		dataType: "json",
 		url: couchDBroot+"/taskforce/"+nodeID,
-		success: function(data, status, xhr){
+		success: function(data){
 			callback(data);
 		}
 	});
@@ -147,27 +149,27 @@ function fetchNode(nodeID, callback){
 
 function luceneFetch(filter, callback){
 	var docs = [];
-	var query = "nodes?q=";
+	var query = "nodes?q="+filter;
 	$.ajax({
 		dataType: "json",
-		url: couchDBroot+"/taskforce/_fti/_design/search/"+query
-		success: function(data, status, xhr){
+		url: couchDBroot+"/taskforce/_fti/_design/search/"+query,
+		success: function(data){
 			docs = data["rows"];
 		}
 	});
 	keylist = '{"keys": ['
-	docs.each(function(index){
+	for(var index = 0; index < docs.length; index++){
 		if(index>0)
 			keylist += ", "
-		keylist += '"'+this.id+'"'
-	});
+		keylist += '"'+docs[index].id+'"'
+	}
 	keylist += ']}'
 	$.ajax({
 		dataType: "json",
 		url: couchDBroot+"/taskforce/_design/summary/_view/by_id",
 		type: "POST",
 		data: keylist,
-		success: function(data, status, xhr){
+		success: function(data){
 			callback(data);
 		}
 	});
@@ -193,20 +195,13 @@ function createUUID() {
 function loadNodeRenderers(){
 	$.ajax({
 		dataType: "json",
-		url: "/renderer/index.html",
-		success: function(data, status, xhr){
-			data["renderers"].each(function(index){
-				$.getScript('/renderer/'+this);
-			});
-		}
-	});
-	$.ajax({
-		dataType: "json",
-		url: "/listView/index.html",
-		success: function(data, status, xhr){
-			data["renderers"].each(function(index){
-				$.getScript('/listView/'+this);
-			});
+		url: webbase+"/renderer/index.html",
+		success: function(data){
+			//console.log(data);
+			for(var i = 0; i < data.renderers.length; i++){
+				//console.log(data.renderers[i]);
+				$.getScript(webbase+'/renderer/'+data.renderers[i]);
+			}
 		}
 	});
 }
@@ -214,6 +209,7 @@ function loadNodeRenderers(){
 //Initialization function - this is called after the DOM has been loaded.
 $(document).ready(function(){
 	loadNodeRenderers();
+	switchToFilter('*'); //Show by default all nodes
 });
 
 //##############################################################################
