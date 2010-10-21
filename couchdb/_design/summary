@@ -1,9 +1,12 @@
 "language":"javascript"
 "views":{
-	"by_id":{
+	"by_tag":{
 		"map":"function(doc){
 			if(doc.type == "node"){
-				emit(doc.id, {"nodetype":doc.nodetype, "owner":doc.owner, "acl":doc.acl, "summary":doc.data.summary});
+				emit(doc.id, {"_id":doc._id, "nodetype":doc.nodetype, "owner":doc.owner, "acl":doc.acl, "summary":doc.data.summary});
+				for(var i in doc.tags){
+					emit(i, doc._id);
+				}
 			}
 		}"
 	}
