@@ -1,7 +1,5 @@
 
-Namespace("eu.twopi.taskforce.renderer.note");
-
-eu.twopi.taskforce.renderer.note = {
+registerNodeRenderer({
 	"name": "Note renderer",
 	"uuid": "0c950621-1c27-4bfb-ae59-61878a8a7e66",
 	"creator": "jaseg",
@@ -39,7 +37,5 @@ eu.twopi.taskforce.renderer.note = {
 			}
 		};
 	}
-}
-
-registerNodeRenderer(eu.twopi.taskforce.renderer.note);
+});
 

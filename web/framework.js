@@ -7,7 +7,9 @@
  * requires JQuery.
  */
 
-const couchDBroot = "http://192.168.2.20:5984"
+//Caution! The following line (currently) requires socat to forward the requests
+//to the actual couchdb (which is running on .20).
+const couchDBroot = "http://192.168.2.23/couchdb"
 
 const webbase = "http://192.168.2.23/taskforce"
 var currentQuery = new Array();
@@ -15,7 +17,7 @@ var queryHistory = new Array();
 
 var currentNode = null;
 //Quick-and-dirty code!!
-var current_user = "jaseg";
+var currentUser = "jaseg";
 
 var nodeRenderers = new Array();
 var currentNodeRenderer = new Array();
@@ -93,6 +95,31 @@ function generateQueryString(queryArray){
 	return tmpQuery;
 }
 
+function viewTag(tag){
+	$.ajax({
+		dataType: "json",
+		url: couchDBroot+"/taskforce/_design/summary/_view/by_tag",
+		data: {"key":tag},
+		success: function(data){
+			renderNode(createListFromViewResult(data, tag), "show", $('#contentpanel'));
+		}
+	});
+}
+
+function viewOwner(owner){
+	$.ajax({
+		dataType: "json",
+//		type: "POST",
+		url: couchDBroot+"/taskforce/_design/summary/_view/by_owner",
+//		data: {"keys": [owner]},
+		success: function(data){
+			var mod = createListFromViewResult(data, owner);
+			console.log(mod);
+			renderNode(mod, "show", $('#contentpanel'));
+		}
+	});
+}
+
 function queryHistoryBack(){
 	currentQuery = queryHistory.pop();
 	renderCurrentQuery();
@@ -124,9 +151,12 @@ function setCurrentNodeRenderer(index){
 
 function renderNode(node, role, target){
 	if(currentNodeRenderer[node.node_type]){
+		console.log("known renderer");
 		currentNodeRenderer[node.node_type].render(node, role, target);
 	}else{
+		//console.log(nodeRenderers);
 		for(var renderer in nodeRenderers){
+			console.log(renderer);
 			if(renderer.renders(node.note_type)){
 				renderer.render(node, role, target);
 				currentNodeRenderer[node.note_type] = renderer;
@@ -137,7 +167,7 @@ function renderNode(node, role, target){
 }
 
 function registerNodeRenderer(renderer){
-	nodeRenderers = renderer;
+	nodeRenderers.push(renderer);
 }
 
 function fetchNode(nodeID, callback){
@@ -173,27 +203,31 @@ function luceneFetch(filter, callback){
 		type: "POST",
 		data: keylist,
 		success: function(data){
-			var listdoc={
-				"_id":"temp_"+createUUID(),
-				"temp":true,
-				"name":queryString,
-				"data":{
-					"summary":{
-						"offset":data.offset,
-						"row_count":data.total_rows
-					},
-					"rest":data.rows
-				},
-				"modification_date":getTime(),
-				"parents":null,
-				"acl":"everyone:r,owner:w",
-				"tags":[],
-				"owner":current_user,
-				"node_type":"nodelist"
-			};
-			callback(data);
+			callback(createListFromViewResult(data, queryString));
 		}
 	});
+}
+
+function createListFromViewResult(data, docName){
+	return {
+		"_id":"temp_"+createUUID(),
+		"temp":true,
+		"name":docName,
+		"data":{
+			"summary":{
+				"offset":data.offset,
+				"row_count":data.total_rows
+			},
+			"rest":data.rows
+		},
+		"modification_date":(new Date()).getTime(),
+		"parents":null,
+		"acl":"everyone:r,owner:w",
+		"tags":[],
+		"owner":currentUser,
+		"node_type":"nodelist",
+		"type":"node"
+	};
 }
 
 //Posted by Kevin Hakanson on stackoverflow.com
@@ -213,16 +247,23 @@ function createUUID() {
 	return uuid;
 }
 
-function loadNodeRenderers(){
+function loadNodeRenderers(callback){
 	$.ajax({
 		dataType: "json",
 		url: webbase+"/renderer/index.html",
 		success: function(data){
 			//console.log(data);
-			for(var i = 0; i < data.renderers.length; i++){
-				//console.log(data.renderers[i]);
-				$.getScript(webbase+'/renderer/'+data.renderers[i]);
+			function loadNextScript(list){
+				var element = list.pop();
+				$.getScript(webbase+'/renderer/'+element, function(data, status){
+					if(list.length > 0){
+						loadNextScript(list);
+					}else{
+						callback();
+					}
+				});
 			}
+			loadNextScript(data.renderers);
 		}
 	});
 }
@@ -230,9 +271,11 @@ function loadNodeRenderers(){
 //Initialization function - this is called after the DOM has been loaded.
 $(document).ready(function(){
 	initLocalize('lang', 'en');
-	loadNodeRenderers();
-	switchToFilter('*'); //Show by default all nodes
+	loadNodeRenderers(function(){
+		viewOwner(currentUser); //Show by default all nodes of the current user
+	});
 });
+
 
 //##############################################################################
 //Legacy code. Not yet deleted because it could be useful in the future.

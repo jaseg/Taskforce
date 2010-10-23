@@ -7,7 +7,6 @@
 			"map":"function(doc){
 				if(doc.type == \"node\"){
 					emit(doc.id, {
-							\"_id\":doc._id, 
 							\"nodetype\":doc.nodetype,
 							\"owner\":doc.owner,
 							\"acl\":doc.acl,
@@ -16,7 +15,7 @@
 						}
 					);
 					for(var i in doc.tags){
-						emit(i, doc._id);
+						emit(i);
 					}
 				}
 			}"
@@ -25,7 +24,6 @@
 			"map":"function(doc){
 				if(doc.type == \"node\"){
 					emit(doc.owner, {
-							\"_id\":doc._id,
 							\"nodetype\":doc.nodetype,
 							\"acl\":doc.acl,
 							\"summary\":doc.data.summary,
@@ -33,11 +31,6 @@
 						}
 					);
 				}
-			}"
-		},
-		"test":{
-			"map":"function(doc){
-				emit(null);
 			}"
 		}
 	}
