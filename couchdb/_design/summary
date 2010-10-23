@@ -11,9 +11,9 @@
 							\"nodetype\":doc.nodetype,
 							\"owner\":doc.owner,
 							\"acl\":doc.acl,
-							\"summary\":doc.data.summary
-						},
-						\"tags\":doc.tags
+							\"summary\":doc.data.summary,
+							\"tags\":doc.tags
+						}
 					);
 					for(var i in doc.tags){
 						emit(i, doc._id);
