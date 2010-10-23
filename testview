@@ -1,0 +1,27 @@
+#!/bin/bash
+
+echo -e '{\c' > /tmp/couch_upload_$$
+print=false
+readarray lines < couchdb/$1
+for i in $(seq 0 ${#lines[@]})
+do	line=${lines[$i]}
+	#echo "$print $line"
+	tmp=$(echo "$line"|grep -E '^[[:space:]]{2}\}')
+	if $print
+	then	if [ ${#tmp} -ne 0 ]
+		then	echo "}">>/tmp/couch_upload_$$
+			print=false
+			#echo FALSE\!
+		else	read  -rd '' str <<< "$line"
+			echo -n "$str">>/tmp/couch_upload_$$
+		fi
+	else	if [ -n "$(echo $line| grep $2)" ]
+		then	print=true
+		fi
+	fi
+done
+
+curl -H 'Content-Type: application/json' -X POST \
+http://jaseg:$(cat /home/jaseg/pws/couchpw)@192.168.2.20:5984/taskforce/_temp_view \
+-d @/tmp/couch_upload_$$
+rm /tmp/couch_upload_$$

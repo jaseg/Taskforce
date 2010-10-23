@@ -1,0 +1,13 @@
+#!/bin/bash
+
+function upload {
+rev=$(curl http://192.168.2.20:5984/taskforce/$1|cut -d':' -f 3|cut -d'"' -f 2)
+sed "s/REV/$rev/1" couchdb/$1 > /tmp/couch_upload_$$
+curl -X PUT\
+	http://jaseg:$(cat /home/jaseg/pws/couchpw)@192.168.2.20:5984/taskforce/$1\
+	-d @/tmp/couch_upload_$$
+rm /tmp/couch_upload_$$
+echo "$1 is now at revision $rev"
+}
+
+upload "_design/summary"
