@@ -1,6 +1,6 @@
 {
 	"_id":"_design/summary",
-	"_rev":"10-460eac21671d987349308a51a46a1430",
+	"_rev":"REV",
 	"language":"javascript",
 	"views":{
 		"by_tag":{
