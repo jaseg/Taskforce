@@ -114,7 +114,7 @@ function viewOwner(owner){
 //		data: {"keys": [owner]},
 		success: function(data){
 			var mod = createListFromViewResult(data, owner);
-			console.log(mod);
+			//console.log(mod);
 			renderNode(mod, "show", $('#contentpanel'));
 		}
 	});
@@ -151,13 +151,14 @@ function setCurrentNodeRenderer(index){
 
 function renderNode(node, role, target){
 	if(currentNodeRenderer[node.node_type]){
-		console.log("known renderer");
+		//console.log("known renderer");
 		currentNodeRenderer[node.node_type].render(node, role, target);
 	}else{
+		//console.log("unknown renderer");
 		//console.log(nodeRenderers);
-		for(var renderer in nodeRenderers){
-			console.log(renderer);
-			if(renderer.renders(node.note_type)){
+		for each(var renderer in nodeRenderers){
+			//console.log(node);
+			if(renderer.renders(node.node_type)){
 				renderer.render(node, role, target);
 				currentNodeRenderer[node.note_type] = renderer;
 				return false;

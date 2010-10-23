@@ -4,13 +4,13 @@ registerNodeRenderer({
 	"uuid": "0c950621-1c27-4bfb-ae59-61878a8a7e66",
 	"creator": "jaseg",
 	"altitude": 1.0,
-	"renders": function(node_type){
+	"renders": function(node_type, test){
 		return node_type == "note";
 	},
 	"render": function(node, role, target){
 		var buf = '<div class="note">';
 		if(role == "show"){
-			buf += eu.twopi.taskforce.renderer.note.generateShowDiv(node.data.summary.text + node.data.full.text);
+			buf += eu.twopi.taskforce.renderer.note.generateShowDiv(node.data.summary.text + node.data.rest.text);
 		}else{//if (role == "summary"){
 			buf += '<div class="text">';
 			buf += node.data.summary.text;
