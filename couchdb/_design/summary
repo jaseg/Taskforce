@@ -1,13 +1,39 @@
-"language":"javascript"
-"views":{
-	"by_tag":{
-		"map":"function(doc){
-			if(doc.type == "node"){
-				emit(doc.id, {"_id":doc._id, "nodetype":doc.nodetype, "owner":doc.owner, "acl":doc.acl, "summary":doc.data.summary});
-				for(var i in doc.tags){
-					emit(i, doc._id);
+{
+	"_id":"_design/summary",
+	"_rev":"10-460eac21671d987349308a51a46a1430",
+	"language":"javascript",
+	"views":{
+		"by_tag":{
+			"map":"function(doc){
+				if(doc.type == \"node\"){
+					emit(doc.id, {
+							\"_id\":doc._id, 
+							\"nodetype\":doc.nodetype,
+							\"owner\":doc.owner,
+							\"acl\":doc.acl,
+							\"summary\":doc.data.summary
+						},
+						\"tags\":doc.tags
+					);
+					for(var i in doc.tags){
+						emit(i, doc._id);
+					}
 				}
-			}
-		}"
+			}"
+		},
+		"by_owner":{
+			"map":"function(doc){
+				if(doc.type == \"node\"){
+					emit(doc.owner, {
+							\"_id\":doc._id,
+							\"nodetype\":doc.nodetype,
+							\"acl\":doc.acl,
+							\"summary\":doc.data.summary,
+							\"tags\":doc.tags
+						}
+					);
+				}
+			}"
+		}
 	}
 }

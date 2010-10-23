@@ -14,6 +14,8 @@ var currentQuery = new Array();
 var queryHistory = new Array();
 
 var currentNode = null;
+//Quick-and-dirty code!!
+var current_user = "jaseg";
 
 var nodeRenderers = new Array();
 var currentNodeRenderer = new Array();
@@ -27,7 +29,7 @@ function renderTagList(taglist, target){
 function switchToNode(id){
 	fetchNode(id, function(data){
 		currentNode = data;
-		renderNode(currentNode, $('#contentpanel'));
+		renderNode(currentNode, "show", $('#contentpanel'));
 	});
 	populateCurrentNodeRendererMenu(currentNode, $('#rendererSelector'));
 }
@@ -59,8 +61,9 @@ function addFilter(query){
 }
 
 function renderCurrentQuery(){
-	luceneFetch(generateQueryString(currentQuery), function(data){
-		renderNode(data, $('#contentpanel'));
+	var queryString = generateQueryString(currentQuery);
+	luceneFetch(queryString, function(data){
+		renderNode(data, "show", $('#contentpanel'));
 	});
 }
 
@@ -116,20 +119,20 @@ function populateCurrentNodeRendererMenu(node, target){
 
 function setCurrentNodeRenderer(index){
 	currentNodeRenderer[currentNode.node_type] = nodeRenderers[index];
-	renderNode(currentNode, $("#contentpanel"));
+	renderNode(currentNode, "show", $("#contentpanel"));
 }
 
-function renderNode(node, target){
+function renderNode(node, role, target){
 	if(currentNodeRenderer[node.node_type]){
-		currentNodeRenderer[node.node_type].render(node, target);
+		currentNodeRenderer[node.node_type].render(node, role, target);
 	}else{
-		nodeRenderers.each(function(index){
-			if(this.renders(node.note_type)){
-				this.render(node, target);
-				currentNodeRenderer[node.note_type] = this;
+		for(var renderer in nodeRenderers){
+			if(renderer.renders(node.note_type)){
+				renderer.render(node, role, target);
+				currentNodeRenderer[node.note_type] = renderer;
 				return false;
 			}
-		});
+		}
 	}
 }
 
@@ -157,19 +160,37 @@ function luceneFetch(filter, callback){
 			docs = data["rows"];
 		}
 	});
-	keylist = '{"keys": ['
+	keylist = '{"keys": [';
 	for(var index = 0; index < docs.length; index++){
 		if(index>0)
-			keylist += ", "
-		keylist += '"'+docs[index].id+'"'
+			keylist += ", ";
+		keylist += '"'+docs[index].id+'"';
 	}
-	keylist += ']}'
+	keylist += ']}';
 	$.ajax({
 		dataType: "json",
-		url: couchDBroot+"/taskforce/_design/summary/_view/by_id",
+		url: couchDBroot+"/taskforce/_design/summary/_view/by_tag",
 		type: "POST",
 		data: keylist,
 		success: function(data){
+			var listdoc={
+				"_id":"temp_"+createUUID(),
+				"temp":true,
+				"name":queryString,
+				"data":{
+					"summary":{
+						"offset":data.offset,
+						"row_count":data.total_rows
+					},
+					"rest":data.rows
+				},
+				"modification_date":getTime(),
+				"parents":null,
+				"acl":"everyone:r,owner:w",
+				"tags":[],
+				"owner":current_user,
+				"node_type":"nodelist"
+			};
 			callback(data);
 		}
 	});
@@ -208,6 +229,7 @@ function loadNodeRenderers(){
 
 //Initialization function - this is called after the DOM has been loaded.
 $(document).ready(function(){
+	initLocalize('lang', 'en');
 	loadNodeRenderers();
 	switchToFilter('*'); //Show by default all nodes
 });
