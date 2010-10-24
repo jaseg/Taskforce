@@ -8,12 +8,13 @@ registerNodeRenderer({
 		return node_type == "note";
 	},
 	"render": function(node, role, target){
+		console.log("rendering node");
 		var buf = '<div class="note">';
 		if(role == "show"){
-			buf += eu.twopi.taskforce.renderer.note.generateShowDiv(node.data.summary.text + node.data.rest.text);
+			buf += eu.twopi.taskforce.renderer.note.generateShowDiv(node.data.summary.content + node.data.rest.content);
 		}else{//if (role == "summary"){
 			buf += '<div class="text">';
-			buf += node.data.summary.text;
+			buf += node.data.summary.content;
 			buf += '<div class="threedots">...</div></div><div class="size">';
 			buf += node.data.summary.size;
 			buf += '</div>';

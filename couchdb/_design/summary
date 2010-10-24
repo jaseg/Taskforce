@@ -7,7 +7,7 @@
 			"map":"function(doc){
 				if(doc.type == \"node\"){
 					emit(doc.id, {
-							\"nodetype\":doc.nodetype,
+							\"node_type\":doc.node_type,
 							\"owner\":doc.owner,
 							\"acl\":doc.acl,
 							\"summary\":doc.data.summary,
@@ -24,9 +24,12 @@
 			"map":"function(doc){
 				if(doc.type == \"node\"){
 					emit(doc.owner, {
-							\"nodetype\":doc.nodetype,
+							\"node_type\":doc.node_type,
+							\"owner\":doc.owner,
 							\"acl\":doc.acl,
-							\"summary\":doc.data.summary,
+							\"data\":{
+								\"summary\":doc.data.summary
+							},
 							\"tags\":doc.tags
 						}
 					);

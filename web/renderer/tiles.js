@@ -13,8 +13,10 @@ registerNodeRenderer({
 			console.log(node);
 			for(var index in node.data.rest){
 				buf += "<div class=\"tile\">";
+				console.log("rendering tile "+index);
 				var obj = { "val":"", "html": function(arg){this.val = arg}};
-				renderNode(node.data.rest[index], "summary", obj);
+				console.log({"requesting rendering of summary": node.data.rest[index].value});
+				renderNode(node.data.rest[index].value, "summary", obj);
 				buf += obj.val;
 				buf += "</div>";
 			}
