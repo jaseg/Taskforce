@@ -1,0 +1,51 @@
+<VirtualHost *:80>
+	ServerAdmin jaseg@jellojaseg
+
+	DocumentRoot /home/jaseg/www
+	<Directory />
+		Options FollowSymLinks
+		AllowOverride None
+	</Directory>
+	<Directory /home/jaseg/www>
+		Options Indexes FollowSymLinks MultiViews
+		AllowOverride None
+		Order allow,deny
+		allow from all
+	</Directory>
+
+	ScriptAlias /cgi-bin /usr/lib/cgi-bin
+	<Directory "/usr/lib/cgi-bin">
+		AllowOverride None
+		Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
+		Order allow,deny
+		Allow from all
+	</Directory>
+
+	ErrorLog /var/log/apache2/error.log
+	ErrorDocument 404 /index.php
+
+	# Possible values include: debug, info, notice, warn, error, crit,
+	# alert, emerg.
+	LogLevel warn
+
+	CustomLog /var/log/apache2/access.log combined
+	
+	Alias /taskforce "/home/jaseg/projects/taskforce/src/web"
+	<Directory "/home/jaseg/projects/taskforce/src/web">
+		Options Indexes MultiViews FollowSymLinks
+		AllowOverride None
+		Order allow,deny
+		allow from all
+	</Directory>
+	
+	ProxyRequests Off
+	<Proxy *>
+	Order deny,allow
+	Allow from all
+	</Proxy>
+	RewriteEngine on
+	ProxyPass /couchdb http://192.168.2.20:5984/
+	ProxyPassReverse / http://192.168.2.20:5984/
+	RewriteRule ^/couchdb$ /couchdb/ [R]
+
+</VirtualHost>

@@ -65,7 +65,9 @@ function addFilter(query){
 function renderCurrentQuery(){
 	var queryString = generateQueryString(currentQuery);
 	luceneFetch(queryString, function(data){
-		renderNode(data, "show", $('#contentpanel'));
+		currentNode = data;
+		renderNode(currentNode, "show", $('#contentpanel'));
+		populateCurrentNodeRendererMenu(currentNode, $('#rendererSelector'));
 	});
 }
 
@@ -101,9 +103,15 @@ function viewTag(tag){
 		url: couchDBroot+"/taskforce/_design/summary/_view/by_tag",
 		data: {"key":tag},
 		success: function(data){
-			renderNode(createListFromViewResult(data, tag), "show", $('#contentpanel'));
+			currentNode = createListFromViewResult(data, tag)
+			renderNode(currentNode, "show", $('#contentpanel'));
+			populateCurrentNodeRendererMenu(currentNode, $('#rendererSelector'));
 		}
 	});
+}
+
+function editingFinished(){
+	//Store node to database
 }
 
 function viewOwner(owner){
@@ -113,9 +121,10 @@ function viewOwner(owner){
 		url: couchDBroot+"/taskforce/_design/summary/_view/by_owner",
 //		data: {"keys": [owner]},
 		success: function(data){
-			var mod = createListFromViewResult(data, owner);
+			currentNode = createListFromViewResult(data, owner);
 			//console.log(mod);
-			renderNode(mod, "show", $('#contentpanel'));
+			renderNode(currentNode, "show", $('#contentpanel'));
+			populateCurrentNodeRendererMenu(currentNode, $('#rendererSelector'));
 		}
 	});
 }

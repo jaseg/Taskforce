@@ -11,7 +11,13 @@ eu.twopi.taskforce.renderer.note.showTextEditor = function(){
 }
 
 eu.twopi.taskforce.renderer.note.hideTextEditor = function(){
-	$('#contentpanel.text').html(eu.twopi.taskforce.renderer.note.generateShowDiv($("node_text_editor_textarea").text()));
+	var newText = $("node_text_editor_textarea").text();
+	//Here the length of the summary is set
+	currentNode.data.summary.size = newText.split(' ').length;
+	currentNode.data.summary.content = (/(\b[a-z0-9]+\b.*){10,}/i).exec(newText);
+	currentNode.data.rest.content = newText.substring(currentNode.data.summary.content.length);
+	$('#contentpanel.text').html(eu.twopi.taskforce.renderer.note.generateShowDiv(newText));
+	editingFinished();
 }
 
 eu.twopi.taskforce.renderer.tiles.showNoteTextEditor();
